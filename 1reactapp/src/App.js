@@ -9,9 +9,8 @@ function Square({value,onSquareClick}){
        </button>
    )
 }
-export default function Board() {
-    const [isLastWasX, setIsLastWasX] = useState(true);
-    const [squares, setSquares] = useState(Array(9).fill(null));
+function Board({isLastWasX, squares, onPlay}) {
+
     const winner = calculateWinner(squares);
     let status;
 
@@ -29,13 +28,11 @@ export default function Board() {
 
         if (isLastWasX){
             newSquares[i] = 'O';
-            setIsLastWasX(false);
         }
         else if (isLastWasX === false) {
             newSquares[i] = 'X';
-            setIsLastWasX(true);
         }
-        setSquares(newSquares);
+        onPlay(newSquares);
     }
 
   return (
@@ -77,4 +74,44 @@ function calculateWinner(squares) {
         }
     }
     return null;
+}
+export default function Game(){
+    const[isLastWasX, setIsLastWasX] = useState(true);
+    const[history, setHistory] = useState([Array(9).fill(null)]);
+    const [currentMove, setCurrentMove] = useState(0);
+    const currentSquares = history[currentMove];
+
+    const moves = history.map((squares, move) =>{
+        let description;
+        move === 0
+            ? description = 'Go to game start'
+            : description =`Go to move #${move}`;
+
+        return(
+            <li key={move}>
+                <button onClick={() => jumpToMove(move)}>{description}</button>
+            </li>
+        )
+    })
+    function jumpToMove(nextMove){
+        setCurrentMove(nextMove);
+        setIsLastWasX(nextMove % 2 === 0);
+    }
+    function handlePlay(nextSquares) {
+        const nextHistory = [...history.slice(0, currentMove + 1), nextSquares];
+        setHistory(nextHistory);
+        setCurrentMove(nextHistory.length - 1);
+        setIsLastWasX(!isLastWasX);
+    }
+
+    return(
+    <div className={'game'}>
+        <div className={'game-board'}>
+            <Board isLastWasX={isLastWasX} onPlay={handlePlay} squares={currentSquares}></Board>
+        </div>
+        <div className={'game-info'}>
+            <ol>{moves}</ol>
+        </div>
+    </div>
+    )
 }
